@@ -9,6 +9,10 @@ namespace NASAWebApp
             // Add services to the container.
             builder.Services.AddControllersWithViews();
 
+
+            // Register HttpClientFactory
+            builder.Services.AddHttpClient();
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.

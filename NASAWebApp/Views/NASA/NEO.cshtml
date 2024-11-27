@@ -1,0 +1,82 @@
+﻿@model Dictionary<string, List<NASAWebApp.Models.NEO.NearEarthObject>>
+
+@{
+    ViewData["Title"] = "Near-Earth Objects";
+}
+
+<h1 class="text-center mb-4">Near-Earth Objects (NEO)</h1>
+
+<!-- Error message display -->
+@if (ViewBag.Error != null)
+{
+    <div class="alert alert-danger">
+        @ViewBag.Error
+    </div>
+}
+
+<!-- Date input form -->
+<form method="post" class="mb-4">
+    <div class="row">
+        <div class="col-md-4">
+            <label for="startDate" class="form-label">Start Date:</label>
+            <input type="date" id="startDate" name="startDate" class="form-control" required />
+        </div>
+        <div class="col-md-4">
+            <label for="endDate" class="form-label">End Date:</label>
+            <input type="date" id="endDate" name="endDate" class="form-control" required />
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary w-100">Fetch Data</button>
+        </div>
+    </div>
+</form>
+
+<!-- NEO Data Display -->
+@if (Model != null && Model.Any())
+{
+    foreach (var dateGroup in Model)
+    {
+        <h3 class="mt-4">Date: @dateGroup.Key</h3>
+        <table class="table table-striped table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>Name</th>
+                    <th>Magnitude</th>
+                    <th>Diameter (Min-Max, km)</th>
+                    <th>Hazardous</th>
+                    <th>Miss Distance (km)</th>
+                    <th>Velocity (km/s)</th>
+                    <th>Orbiting Body</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var neo in dateGroup.Value)
+                {
+                    <tr>
+                        <td>@neo.Name</td>
+                        <td>@neo.AbsoluteMagnitudeH</td>
+                        <td>
+                            @string.Format("{0:F2} - {1:F2}",
+                                     neo.EstimatedDiameter.Kilometers.EstimatedDiameterMin,
+                                     neo.EstimatedDiameter.Kilometers.EstimatedDiameterMax)
+                        </td>
+                        <td>@(neo.IsPotentiallyHazardousAsteroid ? "Yes" : "No")</td>
+                        <td>@neo.CloseApproachData.FirstOrDefault()?.MissDistance.Kilometers</td>
+                        <td>@neo.CloseApproachData.FirstOrDefault()?.RelativeVelocity.KilometersPerSecond</td>
+                        <td>@neo.CloseApproachData.FirstOrDefault()?.OrbitingBody</td>
+                        <td>
+                            <a href="@neo.NasaJplUrl" target="_blank" class="btn btn-primary btn-sm">
+                                View Details
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+}
+else
+{
+    <p class="text-danger">No NEO data available. Please enter valid dates and try again.</p>
+}
