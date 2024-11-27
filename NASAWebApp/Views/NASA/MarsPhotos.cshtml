@@ -1,0 +1,65 @@
+﻿@model List<NASAWebApp.Models.Photo>
+
+@{
+    ViewData["Title"] = "Mars Rover Photos";
+}
+
+<div class="container mt-4">
+    <h1 class="text-center">Mars Rover Photos</h1>
+
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>Photo ID</th>
+                <th>Camera</th>
+                <th>Earth Date</th>
+                <th>Rover</th>
+                <th>Image</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var photo in Model)
+            {
+                <tr>
+                    <td>@photo.Id</td>
+                    <td>@photo.Camera.FullName</td>
+                    <td>@photo.EarthDate</td>
+                    <td>@photo.Rover.Name</td>
+                    <td>
+                        <a href="#" data-bs-toggle="modal" data-bs-target="#photoModal" data-bs-img-src="@photo.ImgSrc">
+                            <img src="@photo.ImgSrc" alt="Mars Photo" class="img-thumbnail" style="max-width: 100px;" />
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal for Image Enlargement -->
+<div class="modal fade" id="photoModal" tabindex="-1" aria-labelledby="photoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="photoModalLabel">Enlarged Photo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="enlargedImage" src="" alt="Enlarged Mars Photo" class="img-fluid" />
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // JavaScript to update modal image source when a thumbnail is clicked
+        var photoModal = document.getElementById('photoModal');
+        photoModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget; // Button that triggered the modal
+            var imgSrc = button.getAttribute('data-bs-img-src'); // Extract image source from data-* attribute
+            var modalImage = photoModal.querySelector('#enlargedImage');
+            modalImage.src = imgSrc; // Set the modal's image source to the clicked image
+        });
+    </script>
+}

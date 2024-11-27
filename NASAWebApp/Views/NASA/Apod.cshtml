@@ -1,0 +1,75 @@
+﻿@model NASAWebApp.Models.ApodResponse
+
+@{
+    ViewData["Title"] = "Apod";
+    // Model.MediaType = "video";
+    // Model.Url = "https://www.youtube.com/embed/FNHexFdacK0?rel=0";
+}
+
+<h1 class="text-center my-4">Astronomy Picture of the Day (APOD)</h1>
+
+<div class="container">
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">Details</h4>
+            <hr />
+
+            <dl class="row">
+                <dt class="col-sm-3 font-weight-bold">
+                    @Html.DisplayNameFor(model => model.Date)
+                </dt>
+                <dd class="col-sm-9">
+                    @Html.DisplayFor(model => model.Date)
+                </dd>
+
+                <dt class="col-sm-3 font-weight-bold">
+                    @Html.DisplayNameFor(model => model.Explanation)
+                </dt>
+                <dd class="col-sm-9">
+                    @Html.DisplayFor(model => model.Explanation)
+                </dd>
+
+                <dt class="col-sm-3 font-weight-bold">
+                    @Html.DisplayNameFor(model => model.MediaType)
+                </dt>
+                <dd class="col-sm-9">
+                    @Html.DisplayFor(model => model.MediaType)
+                </dd>
+
+                <dt class="col-sm-3 font-weight-bold">
+                    @Html.DisplayNameFor(model => model.ServiceVersion)
+                </dt>
+                <dd class="col-sm-9">
+                    @Html.DisplayFor(model => model.ServiceVersion)
+                </dd>
+
+                <dt class="col-sm-3 font-weight-bold">
+                    @Html.DisplayNameFor(model => model.Title)
+                </dt>
+                <dd class="col-sm-9">
+                    @Html.DisplayFor(model => model.Title)
+                </dd>
+
+                <dt class="col-sm-3 font-weight-bold">
+                    @Html.DisplayNameFor(model => model.Url)
+                </dt>
+                <dd class="col-sm-9">
+                    @Html.DisplayFor(model => model.Url)
+                </dd>
+            </dl>
+
+            @if (Model.MediaType == "image")
+            {
+                <div class="text-center">
+                    <img src="@Model.Url" class="img-fluid rounded" alt="APOD Image" />
+                </div>
+            }
+            else if (Model.MediaType == "video")
+            {
+                <div class="text-center">
+                    <iframe width="560" height="315" src="@Model.Url" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+            }
+        </div>
+    </div>
+</div>
