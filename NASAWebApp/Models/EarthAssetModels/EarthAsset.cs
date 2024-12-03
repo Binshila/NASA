@@ -21,4 +21,4 @@ namespace NASAWebApp.Models.EarthAssetModels
     }
 }
 
-}
+

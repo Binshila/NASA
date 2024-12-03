@@ -1,10 +1,12 @@
 ﻿using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.Mvc;
 using NASAWebApp.Models;
+using NASAWebApp.Models.AssetDetails;
 using NASAWebApp.Models.DONKI;
 using NASAWebApp.Models.EarthAssetModels;
 using NASAWebApp.Models.EpicImagesModels;
 using NASAWebApp.Models.FLR;
+using NASAWebApp.Models.NasaSearch;
 using NASAWebApp.Models.NEO;
 using System.Net.Http;
 using System.Text.Json;
@@ -253,5 +255,89 @@ namespace NASAWebApp.Controllers
 
             return View( images);
         }
+
+        public async Task<IActionResult> LaunchImages()
+        {
+            string apiUrl = "https://images-api.nasa.gov/search?q=Mission";
+            NasaApiResponse apiResponse = null;
+
+            try
+            {
+                HttpResponseMessage response = await _httpClient.GetAsync(apiUrl);
+                if (response.IsSuccessStatusCode)
+                {
+                    string json = await response.Content.ReadAsStringAsync();
+                    apiResponse = JsonSerializer.Deserialize<NasaApiResponse>(json);
+                }
+            }
+            catch
+            {
+                // Handle exceptions (e.g., log errors or display an error message)
+            }
+
+            if (apiResponse?.Collection?.Items == null)
+            {
+                ViewBag.ErrorMessage = "No data available.";
+                return View("Error");
+            }
+
+            return View(apiResponse.Collection.Items);
+        }
+
+
+        public async Task<IActionResult> AssetDetails(string nasaId)
+        {
+            if (string.IsNullOrEmpty(nasaId))
+            {
+                return BadRequest("NASA ID is required.");
+            }
+
+            string apiUrl = $"https://images-api.nasa.gov/asset/{nasaId}";
+            NasaAsset nasaAsset = null;
+
+            try
+            {
+                HttpResponseMessage response = await _httpClient.GetAsync(apiUrl);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    string json = await response.Content.ReadAsStringAsync();
+
+                    // Use JsonSerializer with relaxed options to handle special characters
+                    var options = new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true, // Case insensitive deserialization
+                        ReadCommentHandling = JsonCommentHandling.Skip,
+                        AllowTrailingCommas = true
+                    };
+
+                    nasaAsset = JsonSerializer.Deserialize<NasaAsset>(json, options);
+                }
+            }
+            catch (JsonException ex)
+            {
+                // Log error and display a friendly message
+                Console.WriteLine($"JSON Parsing Error: {ex.Message}");
+                ViewBag.ErrorMessage = "An error occurred while processing the NASA data.";
+                return View("Error");
+            }
+            catch (Exception ex)
+            {
+                // Handle general exceptions
+                Console.WriteLine($"Error: {ex.Message}");
+                ViewBag.ErrorMessage = "An unexpected error occurred.";
+                return View("Error");
+            }
+
+            if (nasaAsset?.Collection?.Items == null || !nasaAsset.Collection.Items.Any())
+            {
+                ViewBag.ErrorMessage = "No assets available for this NASA ID.";
+                return View("Error");
+            }
+
+            return View(nasaAsset.Collection.Items);
+        }
+
+
     }
 }

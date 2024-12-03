@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using NASAWebApp.Models.NasaSearch;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace ConsoleTestApp
@@ -48,7 +49,7 @@ namespace ConsoleTestApp
             Console.ReadKey();
         }
 
-        static async Task Main(string[] args)
+        static async Task Main2(string[] args)
         {
             string apiUrl = "https://api.nasa.gov/neo/rest/v1/feed?start_date=2024-10-25&end_date=2024-10-31&api_key=9u1mwSQr5URVzMfzvfB1H0Krkvn4NDJCVS5NdqPx";
 
@@ -99,9 +100,51 @@ namespace ConsoleTestApp
             }
         }
 
+
+      
+public class Program2
+    {
+        public static async Task Main(string[] args)
+        {
+            string url = "https://images-api.nasa.gov/search?q=Launch";
+
+            using HttpClient client = new HttpClient();
+            HttpResponseMessage response = await client.GetAsync(url);
+
+            if (response.IsSuccessStatusCode)
+            {
+                string json = await response.Content.ReadAsStringAsync();
+                NasaApiResponse apiResponse = JsonSerializer.Deserialize<NasaApiResponse>(json);
+
+                if (apiResponse?.Collection?.Items != null)
+                {
+                    foreach (var item in apiResponse.Collection.Items)
+                    {
+                        foreach (var data in item.Data)
+                        {
+                            Console.WriteLine($"Title: {data.Title}");
+                            Console.WriteLine($"Photographer: {data.Photographer}");
+                            Console.WriteLine($"Location: {data.Location}");
+                            Console.WriteLine($"Description: {data.Description}");
+                            Console.WriteLine($"Keywords: {string.Join(", ", data.Keywords)}");
+                            Console.WriteLine($"Image Preview: {item.Links?[0]?.Href}");
+                            Console.WriteLine(new string('-', 50));
+                        }
+                    }
+                }
+            }
+            else
+            {
+                Console.WriteLine($"Failed to fetch data. Status: {response.StatusCode}");
+            }
+
+            Console.ReadKey();
+        }
     }
 
-    public class ApodResponse
+}
+
+public class ApodResponse
     {
         public string Date { get; set; }
         public string Explanation { get; set; }
@@ -243,6 +286,79 @@ namespace ConsoleTestApp
 
         [JsonPropertyName("near_earth_objects")]
         public Dictionary<string, List<NearEarthObject>> NearEarthObjects { get; set; }
+    }
+
+}
+
+
+namespace NASAWebApp.Models.NasaSearch
+{
+    using System.Text.Json.Serialization;
+
+    public class NasaImageData
+    {
+        [JsonPropertyName("center")]
+        public string Center { get; set; }
+
+        [JsonPropertyName("title")]
+        public string Title { get; set; }
+
+        [JsonPropertyName("photographer")]
+        public string Photographer { get; set; }
+
+        [JsonPropertyName("keywords")]
+        public List<string> Keywords { get; set; }
+
+        [JsonPropertyName("location")]
+        public string Location { get; set; }
+
+        [JsonPropertyName("nasa_id")]
+        public string NasaId { get; set; }
+
+        [JsonPropertyName("media_type")]
+        public string MediaType { get; set; }
+
+        [JsonPropertyName("date_created")]
+        public string DateCreated { get; set; }
+
+        [JsonPropertyName("description")]
+        public string Description { get; set; }
+    }
+
+    public class NasaImageLink
+    {
+        [JsonPropertyName("href")]
+        public string Href { get; set; }
+
+        [JsonPropertyName("rel")]
+        public string Rel { get; set; }
+
+        [JsonPropertyName("render")]
+        public string Render { get; set; }
+    }
+
+    public class NasaItem
+    {
+        [JsonPropertyName("href")]
+        public string Href { get; set; }
+
+        [JsonPropertyName("data")]
+        public List<NasaImageData> Data { get; set; }
+
+        [JsonPropertyName("links")]
+        public List<NasaImageLink> Links { get; set; }
+    }
+
+    public class NasaCollection
+    {
+        [JsonPropertyName("items")]
+        public List<NasaItem> Items { get; set; }
+    }
+
+    public class NasaApiResponse
+    {
+        [JsonPropertyName("collection")]
+        public NasaCollection Collection { get; set; }
     }
 
 }

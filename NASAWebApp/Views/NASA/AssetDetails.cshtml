@@ -1,0 +1,80 @@
+﻿ @model List<NASAWebApp.Models.AssetDetails.NasaAssetItem>
+
+
+@{
+    ViewData["Title"] = "NASA Asset Gallery";
+    Layout = "~/Views/Shared/_Layout.cshtml"; // Optional, if you use a layout page
+}
+
+
+@section Head
+{
+    <style>
+        /* Asset Gallery Layout */
+        .asset-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .asset-item {
+            text-align: center;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+            .asset-item:hover {
+                transform: scale(1.05);
+            }
+
+        .asset-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+
+        .asset-video {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+
+    </style>
+}
+
+<h1>@ViewData["Title"]</h1>
+
+@if (Model == null || !Model.Any())
+{
+    <p>No assets available for this NASA ID.</p>
+}
+else
+{
+    <div class="asset-gallery">
+        @foreach (var item in Model)
+        {
+            string fileExtension = System.IO.Path.GetExtension(item.Href)?.ToLower();
+
+            <div class="asset-item">
+                @if (fileExtension == ".jpg" || fileExtension == ".png" || fileExtension == ".jpeg")
+                {
+                    <img src="@item.Href" alt="NASA Asset" class="asset-image" />
+                }
+                else if (fileExtension == ".mp4")
+                {
+                    <video controls class="asset-video">
+                        <source src="@item.Href" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                }
+            </div>
+        }
+    </div>
+}
