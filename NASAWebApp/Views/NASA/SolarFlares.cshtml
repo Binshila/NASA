@@ -1,0 +1,56 @@
+﻿@model List<NASAWebApp.Models.FLR.SolarFlare>
+
+<h1>Solar Flares</h1>
+
+<h1>Search for Solar Flares</h1>
+
+<form method="post">
+    <label for="startDate">Start Date:</label>
+    <input type="date" id="startDate" name="startDate" required />
+
+    <label for="endDate">End Date:</label>
+    <input type="date" id="endDate" name="endDate" required />
+
+    <button type="submit">Search</button>
+</form>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Flare ID</th>
+            <th>Catalog</th>
+            <th>Begin Time</th>
+            <th>Peak Time</th>
+            <th>End Time</th>
+            <th>Class Type</th>
+            <th>Source Location</th>
+            <th>Active Region Number</th>
+            <th>Note</th>
+            <th>Submission Time</th>
+            <th>Link</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model != null)
+        {
+            foreach (var flare in Model)
+            {
+                <tr>
+                    <td>@flare.FlrID</td>
+                    <td>@flare.Catalog</td>
+                    <td>@flare.BeginTime</td>
+                    <td>@flare.PeakTime</td>
+                    <td>@flare.EndTime</td>
+                    <td>@flare.ClassType</td>
+                    <td>@flare.SourceLocation</td>
+                    <td>@flare.ActiveRegionNum</td>
+                    <td>@flare.Note</td>
+                    <td>@flare.SubmissionTime</td>
+                    <td>
+                        <a href="@flare.Link" target="_blank">View</a>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>

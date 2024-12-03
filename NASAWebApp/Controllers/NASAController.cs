@@ -1,7 +1,12 @@
 ﻿using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.Mvc;
 using NASAWebApp.Models;
+using NASAWebApp.Models.DONKI;
+using NASAWebApp.Models.EarthAssetModels;
+using NASAWebApp.Models.EpicImagesModels;
+using NASAWebApp.Models.FLR;
 using NASAWebApp.Models.NEO;
+using System.Net.Http;
 using System.Text.Json;
 
 namespace NASAWebApp.Controllers
@@ -141,6 +146,112 @@ namespace NASAWebApp.Controllers
                 string str = $"Error fetching NEO data: {ex.Message}";
                 return Content(str);
             }
+        }
+
+        public IActionResult CME()//DONKI
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CME(string startDate, string endDate)
+        {
+           
+            var url = $"https://api.nasa.gov/DONKI/CME?startDate={startDate}&endDate={endDate}&api_key={apiKey}";
+
+            var response = await _httpClient.GetAsync(url);
+            if (!response.IsSuccessStatusCode)
+            {
+                ViewBag.Error = "Failed to fetch data from NASA API.";
+                return View("Index");
+            }
+
+            var jsonData = await response.Content.ReadAsStringAsync();
+            var cmes = JsonSerializer.Deserialize<List<CME>>(jsonData);
+
+            return View("Results", cmes);
+        }
+
+
+        public async Task<IActionResult> SolarFlares(string startDate, string endDate)
+        {
+            if (startDate == null || endDate == null)
+            {
+                return View();
+            }
+
+            string apiUrl = $"https://api.nasa.gov/DONKI/FLR?startDate={startDate}&endDate={endDate}&api_key={apiKey}";
+            var response = await _httpClient.GetAsync(apiUrl);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return View("Error", new { Message = "Unable to fetch data from NASA API." });
+            }
+
+            var jsonString = await response.Content.ReadAsStringAsync();
+            var solarFlares = JsonSerializer.Deserialize<List<SolarFlare>>(jsonString, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+
+            return View(solarFlares);
+        }
+
+
+        [HttpGet]
+        public IActionResult EarthAsset()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EarthAsset(string date)
+        {
+            string apiUrl = $"https://api.nasa.gov/planetary/earth/assets?lon=89&lat=23&date={date}&dim=1&api_key=9u1mwSQr5URVzMfzvfB1H0Krkvn4NDJCVS5NdqPx";
+            var response = await _httpClient.GetAsync(apiUrl);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                ViewData["Error"] = "Unable to fetch data from NASA API. Please check the input date or try again later.";
+                return View("Index");
+            }
+
+            var jsonString = await response.Content.ReadAsStringAsync();
+            var earthAsset = JsonSerializer.Deserialize<EarthAsset>(jsonString, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+
+            return View(earthAsset);
+        }
+
+
+        [HttpGet]
+        public IActionResult EpicImages()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ActionName("EpicImages")]
+        public async Task<IActionResult> EpicImagesPost()
+        {
+            string apiUrl = "https://api.nasa.gov/EPIC/api/natural/images?api_key=9u1mwSQr5URVzMfzvfB1H0Krkvn4NDJCVS5NdqPx";
+            var response = await _httpClient.GetAsync(apiUrl);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                ViewData["Error"] = "Unable to fetch data from NASA API. Please try again later.";
+                return View("Index");
+            }
+
+            var jsonString = await response.Content.ReadAsStringAsync();
+            var images = JsonSerializer.Deserialize<List<EpicImage>>(jsonString, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+
+            return View( images);
         }
     }
 }

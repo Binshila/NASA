@@ -1,0 +1,37 @@
+﻿@model List<NASAWebApp.Models.EpicImagesModels.EpicImage>
+
+@{
+    ViewData["Title"] = "Epic Images Viewer";
+}
+
+<h1>EPIC Images Viewer</h1>
+
+<form method="post">
+    <button type="submit">Fetch Images</button>
+</form>
+
+@if (Model != null && Model.Count > 0)
+{
+    <div>
+        <h2>EPIC Images</h2>
+        @foreach (var image in Model)
+        {
+            <div style="margin-bottom: 20px; border: 1px solid #ccc; padding: 10px;">
+                <h3>@image.Caption</h3>
+                <p><strong>Identifier:</strong> @image.Identifier</p>
+                <p><strong>Date:</strong> @image.Date</p>
+                <p><strong>Version:</strong> @image.Version</p>
+                <img src="https://api.nasa.gov/EPIC/archive/natural/@image.Date.Split(' ')[0].Replace("-", "/")/png/@(image.Image).png?api_key=9u1mwSQr5URVzMfzvfB1H0Krkvn4NDJCVS5NdqPx"
+                     alt="EPIC Image"
+                     style="max-width: 100%; height: auto;" />
+            </div>
+        }
+    </div>
+}
+
+@if (ViewData["Error"] != null)
+{
+    <div style="color: red;">
+        <p>@ViewData["Error"]</p>
+    </div>
+}

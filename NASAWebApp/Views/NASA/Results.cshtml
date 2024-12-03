@@ -1,0 +1,27 @@
+﻿@model List<NASAWebApp.Models.DONKI.CME>
+
+@{
+    ViewData["Title"] = "DONKI CME Results";
+}
+
+<h1>CME Results</h1>
+
+@if (Model.Count == 0)
+{
+    <p>No results found for the specified date range.</p>
+}
+else
+{
+    <ul>
+        @foreach (var cme in Model)
+        {
+            <li>
+                <h2>@cme.ActivityID</h2>
+                <p><strong>Catalog:</strong> @cme.Catalog</p>
+                <p><strong>Start Time:</strong> @cme.StartTime</p>
+                <p><strong>Note:</strong> @cme.Note</p>
+                <p><strong>Link:</strong> <a href="@cme.Link" target="_blank">View CME</a></p>
+            </li>
+        }
+    </ul>
+}
