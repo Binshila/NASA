@@ -1,0 +1,58 @@
+﻿ @model List<NASAWebApp.Models.NasaSearch.NasaItem>
+
+@{
+    ViewData["Title"] = "Search NASA Assets";
+}
+
+
+<form method="post">
+    Search anything in NASA (Ex. Launch, Mission, etc)
+    <input type="text" name="searchKey" value="@ViewBag.SearchKey" />
+    <input type="submit" value="Search" />
+</form>
+
+
+
+@if (ViewBag.SearchKey != null)
+{
+    <h1>@ViewData["Title"]</h1>
+
+    if (Model == null || !Model.Any())
+    {
+        <p>No data available.</p>
+    }
+    else
+    {
+        <div class="image-gallery">
+            @{
+                int count = 0;
+            }
+            @foreach (var item in Model)
+            {
+                foreach (var data in item.Data)
+                {
+                    count++;
+                    <div class="image-card">
+                        <h2>@data.Title</h2>
+                        <p><strong>Photographer:</strong> @data.Photographer</p>
+                        <p><strong>Location:</strong> @data.Location</p>
+                        <p><strong>Description:</strong> @data.Description</p>
+                        <p><strong>Keywords:</strong> @string.Join(", ", data.Keywords)</p>
+
+                        <p>
+                            <strong>Asset Details:</strong>  <a href="/NASA/AssetDetails?nasaId=@data.NasaId">Click For Details</a>
+                        </p>
+
+                        @if (item.Links != null && item.Links.Any())
+                        {
+                            <img src="@item.Links[0].Href" alt="@data.Title" class="preview-image" />
+                        }
+
+                        <hr />
+                    </div>
+                }
+            }
+            <h3>Total records returned: @count</h3>
+        </div>
+    }
+}

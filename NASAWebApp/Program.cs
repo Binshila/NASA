@@ -1,3 +1,6 @@
+using Microsoft.EntityFrameworkCore;
+using NASAWebApp.AppModels;
+
 namespace NASAWebApp
 {
     public class Program
@@ -9,9 +12,27 @@ namespace NASAWebApp
             // Add services to the container.
             builder.Services.AddControllersWithViews();
 
+            builder.Services.AddHttpContextAccessor();
 
             // Register HttpClientFactory
             builder.Services.AddHttpClient();
+
+            builder.Services.AddSession();
+
+
+            builder.Services.AddDbContext<NasaContext>(options =>
+            options.UseSqlServer(builder.Configuration.GetConnectionString("ConStr"))
+            );
+
+
+
+            // Add cookie authentication
+            builder.Services.AddAuthentication("CookieAuth")
+                .AddCookie("CookieAuth", options =>
+                {
+                    options.LoginPath = "/NASA/Login"; // Redirect to login if not authenticated
+                    options.ExpireTimeSpan = TimeSpan.FromDays(7); // Cookie expiration time
+                });
 
             var app = builder.Build();
 
@@ -24,6 +45,10 @@ namespace NASAWebApp
 
             app.UseRouting();
 
+            app.UseSession();
+
+            // Add authentication and authorization middleware
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapControllerRoute(

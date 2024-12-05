@@ -1,5 +1,9 @@
-﻿using Microsoft.AspNetCore.DataProtection.KeyManagement;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using NASAWebApp.AppModels;
 using NASAWebApp.Models;
 using NASAWebApp.Models.AssetDetails;
 using NASAWebApp.Models.DONKI;
@@ -8,7 +12,9 @@ using NASAWebApp.Models.EpicImagesModels;
 using NASAWebApp.Models.FLR;
 using NASAWebApp.Models.NasaSearch;
 using NASAWebApp.Models.NEO;
+using NASAWebApp.ViewModels;
 using System.Net.Http;
+using System.Security.Claims;
 using System.Text.Json;
 
 namespace NASAWebApp.Controllers
@@ -17,12 +23,15 @@ namespace NASAWebApp.Controllers
     {
         string apiKey = "9u1mwSQr5URVzMfzvfB1H0Krkvn4NDJCVS5NdqPx";
 
-        private readonly HttpClient _httpClient;
-       
+        NasaContext _nasaContext;
 
-        public NASAController(IHttpClientFactory httpClientFactory)
+        private readonly HttpClient _httpClient;
+
+
+        public NASAController(IHttpClientFactory httpClientFactory, NasaContext nasaContext)
         {
             _httpClient = httpClientFactory.CreateClient();
+            _nasaContext = nasaContext;
         }
 
         public IActionResult Index()
@@ -32,9 +41,10 @@ namespace NASAWebApp.Controllers
 
         //Astronomical Picture Of The Day
         //http://..../NASA/Apod
+        [Authorize]
         public async Task<IActionResult> Apod()
         {
-        
+
             string apiUrl = $"https://api.nasa.gov/planetary/apod?api_key={apiKey}";
 
             //using HttpClient client = new HttpClient();
@@ -53,7 +63,7 @@ namespace NASAWebApp.Controllers
                         PropertyNameCaseInsensitive = true
                     });
 
-                   return View(apod);
+                    return View(apod);
                 }
                 else
                 {
@@ -72,10 +82,10 @@ namespace NASAWebApp.Controllers
             return View();
         }
 
-
+        [Authorize]
         public async Task<IActionResult> MarsPhotos()
         {
-           
+
             int sol = 1000; // Example sol (Martian day)
             string camera = "fhaz"; // Example camera
             string apiUrl = $"https://api.nasa.gov/mars-photos/api/v1/rovers/curiosity/photos?sol={sol}&camera={camera}&api_key={apiKey}";
@@ -96,10 +106,10 @@ namespace NASAWebApp.Controllers
                         PropertyNameCaseInsensitive = true
                     });
 
-                   
+
                     return View(marsPhotoResponse.Photos);
                 }
-                
+
             }
             catch (Exception ex)
             {
@@ -111,12 +121,14 @@ namespace NASAWebApp.Controllers
 
 
         [HttpGet]
+        [Authorize]
         public IActionResult NEO()
         {
             return View(new Dictionary<string, List<Models.NEO.NearEarthObject>>());
         }
 
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> NEO(DateTime startDate, DateTime endDate)
         {
             // Validate dates
@@ -139,8 +151,8 @@ namespace NASAWebApp.Controllers
                 var neoData = await _httpClient.GetFromJsonAsync<Models.NEO.NeoResponse>(url);
 
                 // Pass the data to the view
-             //   return View(neoData?.NearEarthObjects ?? new Dictionary<string, List<NearEarthObject>>());
-                return View(neoData?.NearEarthObjects );
+                //   return View(neoData?.NearEarthObjects ?? new Dictionary<string, List<NearEarthObject>>());
+                return View(neoData?.NearEarthObjects);
             }
             catch (Exception ex)
             {
@@ -150,15 +162,17 @@ namespace NASAWebApp.Controllers
             }
         }
 
+        [Authorize]
         public IActionResult CME()//DONKI
         {
             return View();
         }
 
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> CME(string startDate, string endDate)
         {
-           
+
             var url = $"https://api.nasa.gov/DONKI/CME?startDate={startDate}&endDate={endDate}&api_key={apiKey}";
 
             var response = await _httpClient.GetAsync(url);
@@ -174,7 +188,8 @@ namespace NASAWebApp.Controllers
             return View("Results", cmes);
         }
 
-
+        //Get and post togather
+        [Authorize]
         public async Task<IActionResult> SolarFlares(string startDate, string endDate)
         {
             if (startDate == null || endDate == null)
@@ -201,12 +216,14 @@ namespace NASAWebApp.Controllers
 
 
         [HttpGet]
+        [Authorize]
         public IActionResult EarthAsset()
         {
             return View();
         }
 
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> EarthAsset(string date)
         {
             string apiUrl = $"https://api.nasa.gov/planetary/earth/assets?lon=89&lat=23&date={date}&dim=1&api_key=9u1mwSQr5URVzMfzvfB1H0Krkvn4NDJCVS5NdqPx";
@@ -229,12 +246,14 @@ namespace NASAWebApp.Controllers
 
 
         [HttpGet]
+        [Authorize]
         public IActionResult EpicImages()
         {
             return View();
         }
 
         [HttpPost]
+        [Authorize]
         [ActionName("EpicImages")]
         public async Task<IActionResult> EpicImagesPost()
         {
@@ -253,13 +272,27 @@ namespace NASAWebApp.Controllers
                 PropertyNameCaseInsensitive = true
             });
 
-            return View( images);
+            return View(images);
         }
 
-        public async Task<IActionResult> LaunchImages()
+
+        //get and post together
+        [Authorize]
+        public async Task<IActionResult> Search(string searchKey)
         {
-            string apiUrl = "https://images-api.nasa.gov/search?q=Mission";
+            ViewBag.SearchKey = searchKey;
+            if (string.IsNullOrEmpty(searchKey))
+            {
+                return View();
+            }
+
+
+
+
+            string apiUrl = "https://images-api.nasa.gov/search?q=" + searchKey;
             NasaApiResponse apiResponse = null;
+
+
 
             try
             {
@@ -284,7 +317,7 @@ namespace NASAWebApp.Controllers
             return View(apiResponse.Collection.Items);
         }
 
-
+        [Authorize]
         public async Task<IActionResult> AssetDetails(string nasaId)
         {
             if (string.IsNullOrEmpty(nasaId))
@@ -336,6 +369,128 @@ namespace NASAWebApp.Controllers
             }
 
             return View(nasaAsset.Collection.Items);
+        }
+
+
+
+        [HttpGet]
+        public IActionResult Login()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Login(LoginViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            // Find the user by email
+            var user = _nasaContext.Users.FirstOrDefault(u => u.Email == model.Email);
+            if (user == null)
+            {
+                ModelState.AddModelError("", "Invalid email or password.");
+                return View(model);
+            }
+
+            // Verify the password
+            var passwordHasher = new PasswordHasher<string>();
+            var passwordVerificationResult = passwordHasher.VerifyHashedPassword(null, user.PasswordHash, model.Password);
+
+            if (passwordVerificationResult != PasswordVerificationResult.Success)
+            {
+                ModelState.AddModelError("", "Invalid email or password.");
+                return View(model);
+            }
+
+
+
+            // Create a claims identity for the user
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, user.Email),
+                new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString())
+            };
+
+            var claimsIdentity = new ClaimsIdentity(claims, "CookieAuth");
+
+            // Sign in the user and create the cookie
+            await HttpContext.SignInAsync("CookieAuth", new ClaimsPrincipal(claimsIdentity));
+
+            TempData["SuccessMessage"] = "Login successful!";
+
+
+
+
+
+
+            return RedirectToAction("Index", "Home");
+        }
+
+
+        [HttpGet]
+        public IActionResult Register()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult Register(RegisterViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            // Save user to the database (hashed password, etc.)
+            // Check if the email is already registered
+            var existingUser = _nasaContext.Users.FirstOrDefault(u => u.Email == model.Email);
+            if (existingUser != null)
+            {
+                ModelState.AddModelError("Email", "Email is already in use.");
+                return View(model);
+            }
+
+            // Hash the password
+            var passwordHasher = new PasswordHasher<string>();
+            var hashedPassword = passwordHasher.HashPassword(null, model.Password);
+
+            // Create a new User object
+            var newUser = new User
+            {
+                Email = model.Email,
+                PasswordHash = hashedPassword,
+                FullName = model.FullName,
+                CreatedAt = DateTime.Now
+            };
+
+            // Save the user to the database
+            _nasaContext.Users.Add(newUser);
+            _nasaContext.SaveChanges();
+            // Redirect to login or home page
+            TempData["SuccessMessage"] = "Registration successful. You can now log in.";
+            return RedirectToAction("Login");
+        }
+
+
+
+
+        [HttpGet]
+        public async Task<IActionResult> Logout()
+        {
+
+            return View();
+        }
+
+        [HttpPost]
+        [ActionName("Logout")]
+        public async Task<IActionResult> LogoutPost()
+        {
+            await HttpContext.SignOutAsync("CookieAuth");
+            TempData["SuccessMessage"] = "You have been logged out.";
+            return RedirectToAction("Login");
         }
 
 

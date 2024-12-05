@@ -1,5 +1,10 @@
 ﻿<!DOCTYPE html>
+
+@{
+    var email = User.Identity?.Name;
+}
 <html lang="en">
+
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -32,7 +37,51 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>
+                        @if (email != null)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="NASA" asp-action="Apod">Apod</a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="NASA" asp-action="MarsPhotos">MarsPhotos</a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="NASA" asp-action="NEO">NEO</a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="NASA" asp-action="CME">CME</a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="NASA" asp-action="SolarFlares">SolarFlares</a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="NASA" asp-action="EarthAsset">EarthAsset</a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="NASA" asp-action="EpicImages">EpicImages</a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="NASA" asp-action="Search">Search</a>
+                            </li>
+                        }
                     </ul>
+
+                    @if (email == null)
+                    {
+                        <a class="nav-link text-dark" asp-area="" asp-controller="NASA" asp-action="Login">Login</a>
+                    }
+                    else
+                    {
+                        @: Welcome @email
+                        <a class="nav-link text-dark" asp-area="" asp-controller="NASA" asp-action="Logout">Logout</a>
+                    }
                 </div>
             </div>
         </nav>
