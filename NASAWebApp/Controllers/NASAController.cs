@@ -216,6 +216,7 @@ namespace NASAWebApp.Controllers
 
 
         [HttpGet]
+       // [Authorize(Roles ="Manager")]
         [Authorize]
         public IActionResult EarthAsset()
         {
@@ -280,13 +281,25 @@ namespace NASAWebApp.Controllers
         [Authorize]
         public async Task<IActionResult> Search(string searchKey)
         {
+            int userId = (int)GetLoggedInUserId();
+
+            
+
+            // Fetch previous search terms for the user
+            var searchHistory = _nasaContext.SearchHistories
+                .Where(s => s.UserId == userId)
+                .OrderByDescending(s => s.SearchDate) // Optional: Order by most recent
+                .Select(s => s.SearchTerm)
+                .Distinct() // Remove duplicates
+                .ToList();
+
+            ViewBag.SearchHistories = searchHistory ;
+
             ViewBag.SearchKey = searchKey;
             if (string.IsNullOrEmpty(searchKey))
             {
                 return View();
             }
-
-
 
 
             string apiUrl = "https://images-api.nasa.gov/search?q=" + searchKey;
@@ -301,20 +314,35 @@ namespace NASAWebApp.Controllers
                 {
                     string json = await response.Content.ReadAsStringAsync();
                     apiResponse = JsonSerializer.Deserialize<NasaApiResponse>(json);
+
+                    if (apiResponse?.Collection?.Items == null)
+                    {
+                        ViewBag.ErrorMessage = "No data available.";
+                        return View("Error");
+                    }
+                    else
+                    {
+                        //save the search as history
+
+                      
+
+                        _nasaContext.SearchHistories.Add(new SearchHistory() {UserId= userId, SearchTerm=searchKey, SearchDate=DateTime.Now});
+                        await _nasaContext.SaveChangesAsync();
+
+                        return View(apiResponse.Collection.Items);
+                    }
                 }
             }
-            catch
+            catch(Exception ex)
             {
                 // Handle exceptions (e.g., log errors or display an error message)
+                ViewBag.Error = "Error in searching: " + ex.Message;
+              
             }
 
-            if (apiResponse?.Collection?.Items == null)
-            {
-                ViewBag.ErrorMessage = "No data available.";
-                return View("Error");
-            }
 
-            return View(apiResponse.Collection.Items);
+            return View();
+
         }
 
         [Authorize]
@@ -411,7 +439,9 @@ namespace NASAWebApp.Controllers
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, user.Email),
-                new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString())
+                new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+                //new Claim(ClaimTypes.Role, "Admin"),
+                //new Claim(ClaimTypes.Role, "Manager"),
             };
 
             var claimsIdentity = new ClaimsIdentity(claims, "CookieAuth");
@@ -493,6 +523,19 @@ namespace NASAWebApp.Controllers
             return RedirectToAction("Login");
         }
 
+
+
+        public IActionResult AccessDenied(string returnURL)
+        {
+            ViewBag.ReturnURL = returnURL;  
+            return View();
+        }
+
+        private int? GetLoggedInUserId()
+        {
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            return int.TryParse(userIdClaim, out var userId) ? userId : null;
+        }
 
     }
 }

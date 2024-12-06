@@ -2,16 +2,29 @@
 
 @{
     ViewData["Title"] = "Search NASA Assets";
+    List<string> searchHistories = ViewBag.SearchHistories;
 }
 
 
 <form method="post">
     Search anything in NASA (Ex. Launch, Mission, etc)
-    <input type="text" name="searchKey" value="@ViewBag.SearchKey" />
+    @*   <input type="text" name="searchKey" value="@ViewBag.SearchKey" /> *@
+    <input list="searchHistory" id="searchKey" name="searchKey" placeholder="Type or select..." />
+
+    <datalist id="searchHistory">
+        @if (searchHistories != null && searchHistories.Count > 0)
+        {
+            foreach (var search in searchHistories)
+            {
+                <option value="@search"></option>
+            }
+        }
+    </datalist>
+
     <input type="submit" value="Search" />
 </form>
 
-
+<h2>@ViewBag.Error</h2>
 
 @if (ViewBag.SearchKey != null)
 {
@@ -29,27 +42,35 @@
             }
             @foreach (var item in Model)
             {
+
                 foreach (var data in item.Data)
                 {
-                    count++;
-                    <div class="image-card">
-                        <h2>@data.Title</h2>
-                        <p><strong>Photographer:</strong> @data.Photographer</p>
-                        <p><strong>Location:</strong> @data.Location</p>
-                        <p><strong>Description:</strong> @data.Description</p>
-                        <p><strong>Keywords:</strong> @string.Join(", ", data.Keywords)</p>
 
-                        <p>
-                            <strong>Asset Details:</strong>  <a href="/NASA/AssetDetails?nasaId=@data.NasaId">Click For Details</a>
-                        </p>
+                    @if (data != null)
+                    {
+                        count++;
+                        <div class="image-card">
+                            <h2>@data.Title</h2>
+                            <p><strong>Photographer:</strong> @data.Photographer</p>
+                            <p><strong>Location:</strong> @data.Location</p>
+                            <p><strong>Description:</strong> @data.Description</p>
+                            @if (data.Keywords != null)
+                            {
+                                <p><strong>Keywords:</strong> @string.Join(", ", data.Keywords)</p>
+                            }
 
-                        @if (item.Links != null && item.Links.Any())
-                        {
-                            <img src="@item.Links[0].Href" alt="@data.Title" class="preview-image" />
-                        }
+                            <p>
+                                <strong>Asset Details:</strong>  <a href="/NASA/AssetDetails?nasaId=@data.NasaId">Click For Details</a>
+                            </p>
 
-                        <hr />
-                    </div>
+                            @if (item.Links != null && item.Links.Any())
+                            {
+                                <img src="@item.Links[0].Href" alt="@data.Title" class="preview-image" />
+                            }
+
+                            <hr />
+                        </div>
+                    }
                 }
             }
             <h3>Total records returned: @count</h3>

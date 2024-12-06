@@ -31,7 +31,8 @@ namespace NASAWebApp
                 .AddCookie("CookieAuth", options =>
                 {
                     options.LoginPath = "/NASA/Login"; // Redirect to login if not authenticated
-                    options.ExpireTimeSpan = TimeSpan.FromDays(7); // Cookie expiration time
+                    options.ExpireTimeSpan = TimeSpan.FromDays(7); // Cookie expiration time,
+                    options.AccessDeniedPath = "/NASA/AccessDenied";
                 });
 
             var app = builder.Build();
