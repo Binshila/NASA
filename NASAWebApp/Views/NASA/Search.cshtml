@@ -5,11 +5,12 @@
     List<string> searchHistories = ViewBag.SearchHistories;
 }
 
+<h1>@TempData["Message"]</h1>
 
 <form method="post">
     Search anything in NASA (Ex. Launch, Mission, etc)
     @*   <input type="text" name="searchKey" value="@ViewBag.SearchKey" /> *@
-    <input list="searchHistory" id="searchKey" name="searchKey" placeholder="Type or select..." />
+    <input list="searchHistory" id="searchKey" name="searchKey" placeholder="Type or select..." autocomplete="off" />
 
     <datalist id="searchHistory">
         @if (searchHistories != null && searchHistories.Count > 0)
@@ -21,7 +22,11 @@
         }
     </datalist>
 
-    <input type="submit" value="Search" />
+    <input type="submit" value="Search" /> &nbsp;&nbsp;&nbsp;&nbsp;
+    <div class="d-flex gap-2">
+        <a href="/NASA/Search?clearSearch=true" class="btn btn-danger">Clear Search History</a>
+        <a href="/NASA/SearchHistory" class="btn btn-primary">View Your Search History</a>
+    </div>
 </form>
 
 <h2>@ViewBag.Error</h2>
@@ -74,6 +79,7 @@
                 }
             }
             <h3>Total records returned: @count</h3>
+            <a href="/NASA/DownloadResult?searchKey=@ViewBag.SearchKey">Download Result</a>
         </div>
     }
 }

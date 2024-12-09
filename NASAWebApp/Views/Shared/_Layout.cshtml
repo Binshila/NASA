@@ -2,6 +2,8 @@
 
 @{
     var email = User.Identity?.Name;
+    var fullName = User.Claims.FirstOrDefault(c => c.Type == "FullName")?.Value;
+
 }
 <html lang="en">
 
@@ -79,7 +81,7 @@
                     }
                     else
                     {
-                        @: Welcome @email
+                        @: Welcome @email (@fullName)
                         <a class="nav-link text-dark" asp-area="" asp-controller="NASA" asp-action="Logout">Logout</a>
                     }
                 </div>

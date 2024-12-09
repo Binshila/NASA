@@ -279,11 +279,33 @@ namespace NASAWebApp.Controllers
 
         //get and post together
         [Authorize]
-        public async Task<IActionResult> Search(string searchKey)
+        public async Task<IActionResult> Search(string searchKey, string clearSearch)
         {
             int userId = (int)GetLoggedInUserId();
 
-            
+            if(clearSearch  != null)
+            {
+
+                // Retrieve all search histories for the specified user
+                var userSearchHistory = _nasaContext.SearchHistories.Where(sh => sh.UserId == userId);
+
+                if (!userSearchHistory.Any())
+                {
+                    // If no records are found, you can return a message or redirect
+                    TempData["Message"] = "No search history found for the specified user.";
+                    return RedirectToAction("Search");
+                }
+
+                // Remove the retrieved search histories
+                _nasaContext.SearchHistories.RemoveRange(userSearchHistory);
+
+                // Save changes to the database
+                await _nasaContext.SaveChangesAsync();
+
+                // Redirect or return a response
+                TempData["Message"] = "Search history deleted successfully.";
+                return RedirectToAction("Search");
+            }
 
             // Fetch previous search terms for the user
             var searchHistory = _nasaContext.SearchHistories
@@ -313,6 +335,9 @@ namespace NASAWebApp.Controllers
                 if (response.IsSuccessStatusCode)
                 {
                     string json = await response.Content.ReadAsStringAsync();
+
+                    HttpContext.Session.SetString("SearchJson", json);
+
                     apiResponse = JsonSerializer.Deserialize<NasaApiResponse>(json);
 
                     if (apiResponse?.Collection?.Items == null)
@@ -344,6 +369,60 @@ namespace NASAWebApp.Controllers
             return View();
 
         }
+
+        [Authorize]
+        public IActionResult SearchHistory()
+        {
+            int userId = (int)GetLoggedInUserId();
+
+             
+            // Fetch previous search terms for the user
+            var searchHistory = _nasaContext.SearchHistories
+                .Where(s => s.UserId == userId)
+                .OrderByDescending(s => s.SearchDate) // Optional: Order by most recent                
+                .ToList();
+
+            return View(searchHistory);
+        }
+
+        public IActionResult DownloadResult(string searchKey)
+        {
+            // Retrieve the JSON data from the session
+            string? json = HttpContext.Session.GetString("SearchJson");
+
+            // Check if the session data exists
+            if (string.IsNullOrEmpty(json))
+            {
+                // If no data is found, return a 404 Not Found response
+                return NotFound("No search results found to download.");
+            }
+
+            try
+            {
+                // Parse and reformat the JSON data to be indented
+                var parsedJson = System.Text.Json.JsonSerializer.Deserialize<object>(json);
+                var formattedJson = System.Text.Json.JsonSerializer.Serialize(parsedJson, new System.Text.Json.JsonSerializerOptions
+                {
+                    WriteIndented = true // Enable indentation
+                });
+
+                // Convert the formatted JSON string to a byte array
+                byte[] jsonBytes = System.Text.Encoding.UTF8.GetBytes(formattedJson);
+
+                // Create a file name for the download
+                string fileName = $"SearchResults-{searchKey}-{DateTime.Now.ToString("MMM-dd-yyyy hh:mm:ss tt")}.json";
+
+                // Return the JSON data as a downloadable file
+                return File(jsonBytes, "application/json", fileName);
+            }
+            catch (System.Text.Json.JsonException)
+            {
+                // Handle any issues with JSON parsing
+                return BadRequest("Invalid JSON data found in the session.");
+            }
+        }
+
+
 
         [Authorize]
         public async Task<IActionResult> AssetDetails(string nasaId)
@@ -417,9 +496,13 @@ namespace NASAWebApp.Controllers
 
             // Find the user by email
             var user = _nasaContext.Users.FirstOrDefault(u => u.Email == model.Email);
+
+
+          
             if (user == null)
             {
                 ModelState.AddModelError("", "Invalid email or password.");
+                ViewBag.Msg = "Invalid email or password.";
                 return View(model);
             }
 
@@ -440,6 +523,7 @@ namespace NASAWebApp.Controllers
             {
                 new Claim(ClaimTypes.Name, user.Email),
                 new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+                new Claim("FullName", user.FullName ?? string.Empty), // FullName as custom claim
                 //new Claim(ClaimTypes.Role, "Admin"),
                 //new Claim(ClaimTypes.Role, "Manager"),
             };
@@ -451,7 +535,7 @@ namespace NASAWebApp.Controllers
 
             TempData["SuccessMessage"] = "Login successful!";
 
-
+          
 
 
 
