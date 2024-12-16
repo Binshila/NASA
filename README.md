@@ -51,10 +51,10 @@ dotnet run
 4. Access the Application
 Open your browser and navigate to https://localhost:5001 (or the URL specified in your configuration).
 Usage
-1. Login
+1. Sign Up
 •	Sign up with a valid email and create a password.
 2. Login
-•	Enter a valid email to log in.
+•	Enter a valid email and a saved password to log in.
 3. Search
 •	Use the search bar to explore specific topics or data from NASA's API.
 4. Download Data
