@@ -52,12 +52,14 @@ dotnet run
 Open your browser and navigate to https://localhost:5001 (or the URL specified in your configuration).
 Usage
 1. Login
+•	Sign up with a valid email and create a password.
+2. Login
 •	Enter a valid email to log in.
-2. Search
+3. Search
 •	Use the search bar to explore specific topics or data from NASA's API.
-3. Download Data
+4. Download Data
 •	Fetch data from NASA API and download it for personal reference.
-4. View Search History
+5. View Search History
 •	Access previously searched keywords for quick reference.
 Development Notes
 •	Console Application: Used during development for testing and debugging purposes. This is not part of the production app.
