@@ -45,11 +45,12 @@ cd NASAWebApp
 2. Restore Dependencies
 Run the following command to restore required dependencies:
 dotnet restore
-3. Run the Application
+3. Setup the database in SQL Server: Follow the instructions provided in NASA.sql (found in the application root directory) to install the database and 2 tables.
+5. Run the Application
 Start the application using the following command:
 dotnet run
-4. Access the Application
-Open your browser and navigate to https://localhost:5001 (or the URL specified in your configuration).
+6. Access the Application
+Open your browser and navigate to https://localhost:5097 (or the URL specified in your configuration).
 Usage
 1. Sign Up
 •	Sign up with a valid email and create a password.
