@@ -22,6 +22,19 @@ namespace NASAWebApp.Models.FLR
         [JsonPropertyName("endTime")]
         public string EndTime { get; set; }
 
+        public TimeSpan TotalActivityTime
+        {
+            get
+            {
+                
+                DateTime beginTime = DateTime.ParseExact(BeginTime, "yyyy-MM-ddTHH:mmK", null, System.Globalization.DateTimeStyles.AdjustToUniversal);
+                DateTime endTime = DateTime.ParseExact(EndTime, "yyyy-MM-ddTHH:mmK", null, System.Globalization.DateTimeStyles.AdjustToUniversal);
+                TimeSpan t = endTime - beginTime;
+                return t;
+            }
+        }
+
+
         [JsonPropertyName("classType")]
         public string ClassType { get; set; }
 

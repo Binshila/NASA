@@ -1,4 +1,4 @@
-﻿namespace NASAWebApp.Models
+﻿namespace NASAWebApp.Models.Mars
 {
     public class MarsPhotoResponse
     {

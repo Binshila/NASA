@@ -22,6 +22,7 @@
             <th>Begin Time</th>
             <th>Peak Time</th>
             <th>End Time</th>
+            <th>Activity Period (in mins)</th>
             <th>Class Type</th>
             <th>Source Location</th>
             <th>Active Region Number</th>
@@ -41,6 +42,7 @@
                     <td>@flare.BeginTime</td>
                     <td>@flare.PeakTime</td>
                     <td>@flare.EndTime</td>
+                    <td>@((int)flare.TotalActivityTime.TotalMinutes)</td>
                     <td>@flare.ClassType</td>
                     <td>@flare.SourceLocation</td>
                     <td>@flare.ActiveRegionNum</td>

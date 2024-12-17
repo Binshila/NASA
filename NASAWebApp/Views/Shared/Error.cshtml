@@ -4,22 +4,51 @@
 }
 
 <h1 class="text-danger">Error.</h1>
-<h2 class="text-danger">An error occurred while processing your request.</h2>
+<h2 class="text-danger">An error occurred while processing your request</h2>
+
+<p>
+    @Model?.ErrorMessage
+</p>
 
 @if (Model.ShowRequestId)
 {
     <p>
         <strong>Request ID:</strong> <code>@Model.RequestId</code>
     </p>
+  
 }
 
-<h3>Development Mode</h3>
-<p>
-    Swapping to <strong>Development</strong> environment will display more detailed information about the error that occurred.
-</p>
-<p>
-    <strong>The Development environment shouldn't be enabled for deployed applications.</strong>
-    It can result in displaying sensitive information from exceptions to end users.
-    For local debugging, enable the <strong>Development</strong> environment by setting the <strong>ASPNETCORE_ENVIRONMENT</strong> environment variable to <strong>Development</strong>
-    and restarting the app.
-</p>
+<h2>Ensure you have already setup your sql server database first.</h2>
+
+<pre>
+-- database setup steps
+-- open your Sql Server Management Studio.
+-- execute this script on the target sql server to set up the empty database.
+-- then configure the connection string ConStr in appsettings.json
+-- "ConStr": "Data Source=(local);Initial Catalog=NASA;Integrated Security=True;TrustServerCertificate=True"
+-- If you use a sub-instance of sql like sql express, then your connectionstring will change to
+-- "ConStr": "Data Source=(local)\\sqlexpress;Initial Catalog=NASA;Integrated Security=True;TrustServerCertificate=True"
+-- For SQL Server authentication, yiu should additionally add the user id and the password to the conecction string
+USE master
+GO
+CREATE DATABASE NASA
+GO
+Use NASA
+GO
+CREATE TABLE Users(
+	UserId int primary key IDENTITY(1,1) NOT NULL,
+	Email nvarchar(255) NOT NULL,
+	PasswordHash nvarchar(255) NOT NULL,
+	FullName nvarchar(100) NULL,
+	CreatedAt datetime NULL,
+);
+
+
+CREATE TABLE SearchHistories
+(
+	SearchId int IDENTITY(1,1) NOT NULL,
+	UserId int foreign key references Users(UserId),
+	SearchTerm nvarchar(255) NOT NULL,
+	SearchDate datetime NULL,
+);
+</pre>

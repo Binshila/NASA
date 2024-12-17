@@ -15,7 +15,7 @@ namespace NASAWebApp.Controllers
 
         public IActionResult Index()
         {
-            return View();
+            return RedirectToAction("Apod", "NASA", new { isHome = true });
         }
 
         public IActionResult Privacy()

@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace NASAWebApp.Models
+namespace NASAWebApp.Models.Mars
 {
     public class Rover
     {

@@ -10,6 +10,7 @@ using NASAWebApp.Models.DONKI;
 using NASAWebApp.Models.EarthAssetModels;
 using NASAWebApp.Models.EpicImagesModels;
 using NASAWebApp.Models.FLR;
+using NASAWebApp.Models.Mars;
 using NASAWebApp.Models.NasaSearch;
 using NASAWebApp.Models.NEO;
 using NASAWebApp.ViewModels;
@@ -22,6 +23,7 @@ namespace NASAWebApp.Controllers
     public class NASAController : Controller
     {
         string apiKey = "9u1mwSQr5URVzMfzvfB1H0Krkvn4NDJCVS5NdqPx";
+        //Follow the link to get your own NASA api key: 
 
         NasaContext _nasaContext;
 
@@ -41,11 +43,13 @@ namespace NASAWebApp.Controllers
 
         //Astronomical Picture Of The Day
         //http://..../NASA/Apod
-        [Authorize]
-        public async Task<IActionResult> Apod()
+        //[Authorize]
+        public async Task<IActionResult> Apod(bool isHome=false)
         {
 
             string apiUrl = $"https://api.nasa.gov/planetary/apod?api_key={apiKey}";
+
+            ViewBag.isHome = isHome;
 
             //using HttpClient client = new HttpClient();
 
@@ -494,32 +498,34 @@ namespace NASAWebApp.Controllers
                 return View(model);
             }
 
-            // Find the user by email
-            var user = _nasaContext.Users.FirstOrDefault(u => u.Email == model.Email);
-
-
-          
-            if (user == null)
+            try
             {
-                ModelState.AddModelError("", "Invalid email or password.");
-                ViewBag.Msg = "Invalid email or password.";
-                return View(model);
-            }
-
-            // Verify the password
-            var passwordHasher = new PasswordHasher<string>();
-            var passwordVerificationResult = passwordHasher.VerifyHashedPassword(null, user.PasswordHash, model.Password);
-
-            if (passwordVerificationResult != PasswordVerificationResult.Success)
-            {
-                ModelState.AddModelError("", "Invalid email or password.");
-                return View(model);
-            }
+                // Find the user by email
+                var user = _nasaContext.Users.FirstOrDefault(u => u.Email == model.Email);
 
 
 
-            // Create a claims identity for the user
-            var claims = new List<Claim>
+                if (user == null)
+                {
+                    ModelState.AddModelError("", "Invalid email or password.");
+                    ViewBag.Msg = "Invalid email or password.";
+                    return View(model);
+                }
+
+                // Verify the password
+                var passwordHasher = new PasswordHasher<string>();
+                var passwordVerificationResult = passwordHasher.VerifyHashedPassword(null, user.PasswordHash, model.Password);
+
+                if (passwordVerificationResult != PasswordVerificationResult.Success)
+                {
+                    ModelState.AddModelError("", "Invalid email or password.");
+                    return View(model);
+                }
+
+
+
+                // Create a claims identity for the user
+                var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, user.Email),
                 new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
@@ -528,19 +534,25 @@ namespace NASAWebApp.Controllers
                 //new Claim(ClaimTypes.Role, "Manager"),
             };
 
-            var claimsIdentity = new ClaimsIdentity(claims, "CookieAuth");
+                var claimsIdentity = new ClaimsIdentity(claims, "CookieAuth");//CookieAuth is the authentication type
 
-            // Sign in the user and create the cookie
-            await HttpContext.SignInAsync("CookieAuth", new ClaimsPrincipal(claimsIdentity));
+                // Sign in the user and create the cookie
+                await HttpContext.SignInAsync("CookieAuth", new ClaimsPrincipal(claimsIdentity));
 
-            TempData["SuccessMessage"] = "Login successful!";
-
-          
+                TempData["SuccessMessage"] = "Login successful!";
 
 
 
 
-            return RedirectToAction("Index", "Home");
+
+
+                return RedirectToAction("Index", "Home");
+            }
+            catch (Exception ex)
+            {
+
+               return View("Error", new ErrorViewModel {RequestId=Guid.NewGuid().ToString() , ErrorMessage=ex.Message});
+            }
         }
 
 
@@ -558,34 +570,42 @@ namespace NASAWebApp.Controllers
                 return View(model);
             }
 
-            // Save user to the database (hashed password, etc.)
-            // Check if the email is already registered
-            var existingUser = _nasaContext.Users.FirstOrDefault(u => u.Email == model.Email);
-            if (existingUser != null)
+            try
             {
-                ModelState.AddModelError("Email", "Email is already in use.");
-                return View(model);
+                // Save user to the database (hashed password, etc.)
+                // Check if the email is already registered
+                var existingUser = _nasaContext.Users.FirstOrDefault(u => u.Email == model.Email);
+                if (existingUser != null)
+                {
+                    ModelState.AddModelError("Email", "Email is already in use.");
+                    return View(model);
+                }
+
+                // Hash the password
+                var passwordHasher = new PasswordHasher<string>();
+                var hashedPassword = passwordHasher.HashPassword(null, model.Password);
+
+                // Create a new User object
+                var newUser = new User
+                {
+                    Email = model.Email,
+                    PasswordHash = hashedPassword,
+                    FullName = model.FullName,
+                    CreatedAt = DateTime.Now
+                };
+
+                // Save the user to the database
+                _nasaContext.Users.Add(newUser);
+                _nasaContext.SaveChanges();
+                // Redirect to login or home page
+                TempData["SuccessMessage"] = "Registration successful. You can now log in.";
+                return RedirectToAction("Login");
             }
-
-            // Hash the password
-            var passwordHasher = new PasswordHasher<string>();
-            var hashedPassword = passwordHasher.HashPassword(null, model.Password);
-
-            // Create a new User object
-            var newUser = new User
+            catch (Exception ex)
             {
-                Email = model.Email,
-                PasswordHash = hashedPassword,
-                FullName = model.FullName,
-                CreatedAt = DateTime.Now
-            };
 
-            // Save the user to the database
-            _nasaContext.Users.Add(newUser);
-            _nasaContext.SaveChanges();
-            // Redirect to login or home page
-            TempData["SuccessMessage"] = "Registration successful. You can now log in.";
-            return RedirectToAction("Login");
+                return View("Error", new ErrorViewModel {RequestId=Guid.NewGuid().ToString() , ErrorMessage=ex.Message});
+            }
         }
 
 
